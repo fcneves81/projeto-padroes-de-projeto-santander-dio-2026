@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { StatusAventura } from '../models/status.model';
@@ -7,7 +7,7 @@ import { StatusAventura } from '../models/status.model';
   providedIn: 'root'
 })
 export class AventuraService {
-  private apiUrl = 'http://localhost:8080/api/aventura';
+  private apiUrl = isDevMode() ? 'http://localhost:8080/api/aventura' : 'https://www.qudtecnologia.com.br/api-terra-media';
 
   constructor(private http: HttpClient) {}
 
