@@ -1,13 +1,15 @@
 package com.middleearth.patterns;
 
 import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.web.context.WebApplicationContext;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class SessaoAventura {
-    private static SessaoAventura instance;
-    
     private String heroiAtual;
     private String titulo;
     private List<String> grupo;
@@ -49,15 +51,8 @@ public class SessaoAventura {
     private int missaoProgresso;
     private int missaoObjetivo;
     
-    private SessaoAventura() {
+    public SessaoAventura() {
         reset();
-    }
-    
-    public static SessaoAventura getInstance() {
-        if (instance == null) {
-            instance = new SessaoAventura();
-        }
-        return instance;
     }
     
     public void reset() {

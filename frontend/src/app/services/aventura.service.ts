@@ -12,62 +12,62 @@ export class AventuraService {
   constructor(private http: HttpClient) {}
 
   getStatus(): Observable<StatusAventura> {
-    return this.http.get<StatusAventura>(`${this.apiUrl}/status`);
+    return this.http.get<StatusAventura>(`${this.apiUrl}/status`, { withCredentials: true });
   }
 
   selecionarGrupo(grupo: string[]): Observable<any> {
-    return this.http.post(`${this.apiUrl}/grupo/selecionar`, grupo, { responseType: 'text' });
+    return this.http.post(`${this.apiUrl}/grupo/selecionar`, grupo, { responseType: 'text', withCredentials: true });
   }
 
   explorar(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/explorar`, {});
+    return this.http.post(`${this.apiUrl}/explorar`, {}, { withCredentials: true });
   }
 
   tick(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/tick`);
+    return this.http.get(`${this.apiUrl}/tick`, { withCredentials: true });
   }
 
   atacar(index: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/ataque/${index}`);
+    return this.http.get(`${this.apiUrl}/ataque/${index}`, { withCredentials: true });
   }
 
   ataqueAjudantes(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/ataque-ajudantes`, {});
+    return this.http.post(`${this.apiUrl}/ataque-ajudantes`, {}, { withCredentials: true });
   }
   
   reiniciar(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reiniciar`, {});
+    return this.http.post(`${this.apiUrl}/reiniciar`, {}, { withCredentials: true });
   }
 
   consumirItem(item: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/consumir/${item}`, {});
+    return this.http.post(`${this.apiUrl}/consumir/${item}`, {}, { withCredentials: true });
   }
 
   lojaBree(tipo: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cidade/loja?tipo=${tipo}`, {});
+    return this.http.post(`${this.apiUrl}/cidade/loja?tipo=${tipo}`, {}, { withCredentials: true });
   }
 
   curarTotal(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cidade/curar-total`, {});
+    return this.http.post(`${this.apiUrl}/cidade/curar-total`, {}, { withCredentials: true });
   }
 
   pegarLembas(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cidade/evento/lembas`, {});
+    return this.http.post(`${this.apiUrl}/cidade/evento/lembas`, {}, { withCredentials: true });
   }
 
   comerEowyn(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cidade/evento/eowyn`, {});
+    return this.http.post(`${this.apiUrl}/cidade/evento/eowyn`, {}, { withCredentials: true });
   }
 
   cozinharSam(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cozinhar-sam`, {});
+    return this.http.post(`${this.apiUrl}/cozinhar-sam`, {}, { withCredentials: true });
   }
 
   interagirMissao(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cidade/missao`, {});
+    return this.http.post(`${this.apiUrl}/cidade/missao`, {}, { withCredentials: true });
   }
 
   viajar(origem: string, destino: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/viajar`, { origem, destino });
+    return this.http.post(`${this.apiUrl}/viajar`, { origem, destino }, { withCredentials: true });
   }
 }

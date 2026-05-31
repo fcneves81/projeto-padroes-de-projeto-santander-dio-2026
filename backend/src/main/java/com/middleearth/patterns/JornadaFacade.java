@@ -12,7 +12,11 @@ public class JornadaFacade {
         "Portão Negro", "Monte da Perdição"
     );
     
-    public JornadaFacade() {}
+    private final SessaoAventura sessao;
+    
+    public JornadaFacade(SessaoAventura sessao) {
+        this.sessao = sessao;
+    }
     
     public List<String> getDestinos(String localAtual) {
         List<String> destinos = new ArrayList<>();
@@ -40,13 +44,13 @@ public class JornadaFacade {
     public String viajar(String origem, String destino) {
         List<String> disponiveis = getDestinos(origem);
         
-        if ("Mordor".equals(destino) && !SessaoAventura.getInstance().isEventoEspecialConcluido()) {
+        if ("Mordor".equals(destino) && !sessao.isEventoEspecialConcluido()) {
             return "❌ Você precisa concluir seu Evento Especial antes de entrar em Mordor!";
         }
         
         if (disponiveis.contains(destino)) {
-            SessaoAventura.getInstance().setLocalAtual(destino);
-            SessaoAventura.getInstance().setInimigosMortosLocal(0); // Reseta kills do local
+            sessao.setLocalAtual(destino);
+            sessao.setInimigosMortosLocal(0); // Reseta kills do local
             return "✅ Jornada concluída! Você chegou em " + destino;
         }
         

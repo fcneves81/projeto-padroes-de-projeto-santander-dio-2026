@@ -17,15 +17,18 @@ import java.util.Random;
 
 @RestController
 @RequestMapping("/api/aventura")
-@CrossOrigin(origins = {"http://localhost:4200", "https://www.qudtecnologia.com.br"})
+@CrossOrigin(origins = {"http://localhost:4200", "https://www.qudtecnologia.com.br"}, allowCredentials = "true")
 public class AventuraController {
 
     @Autowired
     private JornadaFacade jornadaFacade;
 
+    @Autowired
+    private SessaoAventura sessao;
+
     @GetMapping("/status")
-    public synchronized ResponseEntity<StatusAventuraDTO> getStatus() {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<StatusAventuraDTO> getStatus() {
+
         StatusAventuraDTO dto = new StatusAventuraDTO();
         
         dto.setEstadoJogo(sessao.getEstadoJogo());
@@ -196,11 +199,11 @@ public class AventuraController {
     }
 
     @PostMapping("/grupo/selecionar")
-    public synchronized ResponseEntity<?> selecionarGrupo(@RequestBody List<String> herois) {
+    public ResponseEntity<?> selecionarGrupo(@RequestBody List<String> herois) {
         if (herois == null || herois.isEmpty()) {
             return ResponseEntity.badRequest().body(new AtaqueResponse("Selecione um herói principal.", ""));
         }
-        SessaoAventura sessao = SessaoAventura.getInstance();
+
         
         // Check if it's a swap (Boromir died)
         if ("ESCOLHA_HEROI".equals(sessao.getEstadoJogo())) {
@@ -239,8 +242,8 @@ public class AventuraController {
     }
 
     @PostMapping("/explorar")
-    public synchronized ResponseEntity<?> explorar() {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> explorar() {
+
         if (sessao.getInimigosRestantes() > 0) {
             return ResponseEntity.badRequest().body(new AtaqueResponse("Você já está em combate!", ""));
         }
@@ -276,8 +279,8 @@ public class AventuraController {
     }
     
     @GetMapping("/tick")
-    public synchronized ResponseEntity<?> tick() {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> tick() {
+
         if (!"JOGANDO".equals(sessao.getEstadoJogo()) || sessao.getHeroiAtual() == null) {
             return ResponseEntity.ok(new AtaqueResponse("", ""));
         }
@@ -315,8 +318,8 @@ public class AventuraController {
     }
     
     @GetMapping("/ataque/{index}")
-    public synchronized ResponseEntity<?> atacar(@PathVariable int index) {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> atacar(@PathVariable int index) {
+
         if (!"JOGANDO".equals(sessao.getEstadoJogo())) {
             return ResponseEntity.badRequest().body(new AtaqueResponse("Jogo não está em andamento.", ""));
         }
@@ -470,8 +473,8 @@ public class AventuraController {
     }
 
     @PostMapping("/viajar")
-    public synchronized ResponseEntity<?> viajar(@RequestBody JornadaDTO jornada) {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> viajar(@RequestBody JornadaDTO jornada) {
+
         if (sessao.getInimigosRestantes() > 0) {
             return ResponseEntity.ok(new JornadaResponse("Derrote os inimigos antes de viajar!", jornadaFacade.getDestinos(sessao.getLocalAtual())));
         }
@@ -481,8 +484,8 @@ public class AventuraController {
 
     // Other Endpoints (consumir, loja, curar-total, missao, etc) unchanged in logic but kept here to compile
     @PostMapping("/consumir/{item}")
-    public synchronized ResponseEntity<?> consumir(@PathVariable String item) {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> consumir(@PathVariable String item) {
+
         switch(item) {
             case "cura":
                 if(sessao.getPocoes() > 0) { sessao.setPocoes(sessao.getPocoes() - 1); sessao.setHpAtual(Math.min(sessao.getHpMax(), sessao.getHpAtual() + 50)); return ResponseEntity.ok(new AtaqueResponse("Poção de Cura usada!", "")); } break;
@@ -497,8 +500,8 @@ public class AventuraController {
     }
 
     @PostMapping("/ataque-ajudantes")
-    public synchronized ResponseEntity<?> ataqueAjudantes() {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> ataqueAjudantes() {
+
         if (sessao.getInimigosRestantes() <= 0 || sessao.getGrupo().isEmpty()) return ResponseEntity.badRequest().body(new AtaqueResponse("Indisponível", ""));
         boolean vidaBaixa = sessao.getHpAtual() < (sessao.getHpMax() * 0.1);
         if (sessao.getAtaquesHeroiContador() >= 2 || vidaBaixa) {
@@ -514,8 +517,8 @@ public class AventuraController {
     }
 
     @PostMapping("/cidade/loja")
-    public synchronized ResponseEntity<?> loja(@RequestParam String tipo) {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> loja(@RequestParam String tipo) {
+
         if (sessao.getInimigosRestantes() > 0) return ResponseEntity.badRequest().body(new AtaqueResponse("Você está em combate!", ""));
         if ("Bree".equals(sessao.getLocalAtual())) {
             if (sessao.getDinheiro() >= 20) {
@@ -530,8 +533,8 @@ public class AventuraController {
     }
     
     @PostMapping("/cidade/evento/lembas")
-    public synchronized ResponseEntity<?> lembas() {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> lembas() {
+
         if (sessao.getInimigosRestantes() > 0) return ResponseEntity.badRequest().body(new AtaqueResponse("Você está em combate!", ""));
         if ("Lothlórien".equals(sessao.getLocalAtual())) {
             if (sessao.getDinheiro() >= 50) {
@@ -545,8 +548,8 @@ public class AventuraController {
     }
     
     @PostMapping("/cidade/evento/eowyn")
-    public synchronized ResponseEntity<?> eowyn() {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> eowyn() {
+
         if (sessao.getInimigosRestantes() > 0) return ResponseEntity.badRequest().body(new AtaqueResponse("Você está em combate!", ""));
         if ("Rohan".equals(sessao.getLocalAtual()) && !sessao.isEnsopadoEowynComido()) {
             sessao.setHpAtual(10);
@@ -558,8 +561,8 @@ public class AventuraController {
     }
     
     @PostMapping("/cozinhar-sam")
-    public synchronized ResponseEntity<?> cozinhar() {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> cozinhar() {
+
         if (sessao.getInimigosRestantes() > 0) return ResponseEntity.badRequest().body(new AtaqueResponse("Você está em combate!", ""));
         if (sessao.getGrupo().contains("Sam")) {
             if (sessao.getCarne() > 0 && sessao.getBatata() > 0 && sessao.getEspeciarias() > 0) {
@@ -574,8 +577,8 @@ public class AventuraController {
     }
     
     @PostMapping("/cidade/curar-total")
-    public synchronized ResponseEntity<?> curarT() {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> curarT() {
+
         if (sessao.getInimigosRestantes() > 0) return ResponseEntity.badRequest().body(new AtaqueResponse("Você está em combate!", ""));
         if ("Valfenda".equals(sessao.getLocalAtual()) || "Lothlórien".equals(sessao.getLocalAtual())) {
             sessao.setHpAtual(sessao.getHpMax());
@@ -586,8 +589,8 @@ public class AventuraController {
     }
     
     @PostMapping("/cidade/missao")
-    public synchronized ResponseEntity<?> missao() {
-        SessaoAventura sessao = SessaoAventura.getInstance();
+    public ResponseEntity<?> missao() {
+
         if (sessao.getInimigosRestantes() > 0) return ResponseEntity.badRequest().body(new AtaqueResponse("Você está em combate!", ""));
         if ("Valfenda".equals(sessao.getLocalAtual()) || "Lothlórien".equals(sessao.getLocalAtual())) {
             if (sessao.getMissaoAtiva() == null) {
@@ -610,8 +613,8 @@ public class AventuraController {
         return ResponseEntity.badRequest().body(new AtaqueResponse("Não há missões aqui.", ""));
     }
     @PostMapping("/reiniciar")
-    public synchronized ResponseEntity<?> reiniciar() {
-        SessaoAventura.getInstance().reset();
+    public ResponseEntity<?> reiniciar() {
+        sessao.reset();
         return ResponseEntity.ok(new AtaqueResponse("A jornada recomeça.", ""));
     }
 }
