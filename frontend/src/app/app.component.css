@@ -1,0 +1,17 @@
+.card {
+  border-radius: 15px;
+  transition: transform 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.btn-group button {
+  font-size: 1.1rem;
+  padding: 10px;
+}
+
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}

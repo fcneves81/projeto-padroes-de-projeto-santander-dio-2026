@@ -1,0 +1,278 @@
+<div class="container-fluid vh-100 d-flex flex-column p-3 bg-light position-relative">
+  
+  <!-- Overlay Game Over -->
+  <div *ngIf="status?.estadoJogo === 'GAMEOVER'" class="position-absolute w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-dark text-danger" style="top:0; left:0; z-index: 1050; opacity: 0.95;">
+    <h1 class="display-1 fw-bold">VOCÊ MORREU</h1>
+    <h3 class="mb-4">Sauron venceu e a Terra-média caiu em trevas.</h3>
+    <button class="btn btn-danger btn-lg px-5" (click)="reiniciar()">💀 Iniciar Nova Campanha</button>
+  </div>
+
+  <!-- Overlay Vitoria -->
+  <div *ngIf="status?.estadoJogo === 'VITORIA'" class="position-absolute w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-success text-white" style="top:0; left:0; z-index: 1050; opacity: 0.95;">
+    <h1 class="display-1 fw-bold">VITÓRIA!</h1>
+    <h3 class="mb-4 text-center px-5">E quando tudo parecia perdido, o Um Anel foi consumido pelas chamas da Montanha da Perdição. A Sombra passou, o Reino do Inimigo caiu, e a esperança floresceu mais uma vez na Terra-média!</h3>
+    <button class="btn btn-light text-success btn-lg px-5 mt-3" (click)="reiniciar()">👑 Jogar Novamente</button>
+  </div>
+
+  <!-- Header -->
+  <div class="text-center mb-3 flex-shrink-0">
+    <h2 class="display-6 mb-1">🌍 Aventuras na Terra-média 🧙</h2>
+    <p class="lead mb-0" *ngIf="!status?.heroi && status?.estadoJogo !== 'ESCOLHA_HEROI'">Reúna sua sociedade e comece a jornada!</p>
+    
+    <div class="d-flex justify-content-center align-items-center gap-3 mt-1">
+       <p class="lead mb-0" *ngIf="status?.heroi && status?.estadoJogo !== 'ESCOLHA_HEROI'">A jornada de <strong>{{status?.heroi}}</strong> <span *ngIf="status?.titulo" class="badge bg-warning text-dark">"{{status?.titulo}}"</span> em <strong>{{status?.local}}</strong></p>
+       <button *ngIf="status" class="btn btn-sm btn-outline-danger" (click)="reiniciar()">Encerrar Campanha Atual</button>
+    </div>
+  </div>
+
+  <div class="row flex-grow-1 overflow-hidden">
+    
+    <!-- Tela de Seleção Inicial ou Herdeiro (Morte do Boromir) -->
+    <div class="col-md-12 h-100 overflow-y-auto" *ngIf="!status?.heroi || status?.estadoJogo === 'ESCOLHA_HEROI'">
+      <div class="card shadow border-0 mx-auto mt-4" style="max-width: 600px;">
+        <div class="card-header bg-success text-white py-3">
+          <h4 class="mb-0" *ngIf="!status?.heroi">⚔️ Formar a Sociedade no Condado</h4>
+          <h4 class="mb-0" *ngIf="status?.estadoJogo === 'ESCOLHA_HEROI' && status?.heroi === 'Boromir'">💔 Boromir lutou bravamente, mas caiu diante a fúria do inimigo. Escolha outro líder para sua jornada.</h4>
+          <h4 class="mb-0" *ngIf="status?.estadoJogo === 'ESCOLHA_HEROI' && status?.heroi !== 'Boromir'">💔 A Sociedade Perdeu seu Líder. Escolha um Novo Herói.</h4>
+        </div>
+        <div class="card-body p-4">
+          <p class="text-muted mb-4" *ngIf="status?.estadoJogo === 'ESCOLHA_HEROI'">O seu nível atual (Nível {{status?.nivel}}) e todos os itens serão preservados. O novo herói assumirá o grupo.</p>
+          
+          <div class="alert alert-secondary mb-4 shadow-sm border-0" *ngIf="!status?.heroi" style="background-color: #f8f9fa;">
+            <h6 class="fw-bold mb-2 text-dark">📜 Como Jogar</h6>
+            <p class="small text-muted mb-2">Para destruir o Um Anel, você deve formar a sua Sociedade. Escolha um <strong>Herói Principal</strong> para liderar a jornada e até <strong>dois Ajudantes</strong> para habilitar ataques em grupo.</p>
+            <p class="small text-muted mb-0"><em>💡 Dica: Cada herói possui um destino e um evento épico secreto no mapa. Jogue e descubra!</em></p>
+          </div>
+          
+          <div class="mb-4">
+            <label class="form-label fw-bold">Herói Principal</label>
+            <select class="form-select" [(ngModel)]="heroiPrincipal">
+              <option value="" disabled selected>Selecione...</option>
+              <option *ngFor="let h of heroisDisponiveis" [value]="h">{{h}}</option>
+            </select>
+          </div>
+          
+          <div class="mb-4" *ngIf="!status?.heroi">
+            <label class="form-label fw-bold">Ajudantes (Máx 2)</label>
+            <div class="d-flex flex-column ms-2">
+              <ng-container *ngFor="let h of heroisDisponiveis">
+                <div class="form-check mb-2" *ngIf="h !== heroiPrincipal">
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="ajudantesSelecionados[h]"
+                         [disabled]="!podeSelecionarAjudante(h)" id="check_{{h}}">
+                  <label class="form-check-label" for="check_{{h}}">{{h}}</label>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+          
+          <div class="text-center">
+            <button class="btn btn-success btn-lg px-5 w-100" (click)="iniciarJornada()">🎮 Assumir Controle</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA 1: Status e Inventário -->
+    <div class="col-md-3 h-100 overflow-y-auto pb-3" *ngIf="status?.heroi && status?.estadoJogo === 'JOGANDO'">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-success text-white py-2">
+          <h5 class="mb-0">🛡️ Status</h5>
+        </div>
+        <div class="card-body py-2">
+          <h6 class="mb-1"><strong>Nível {{status?.nivel}}</strong></h6>
+          <p class="small text-muted mb-2" *ngIf="status!.grupo.length > 0">Ajudantes: {{status?.grupo?.join(', ')}}</p>
+          
+          <div class="progress mb-2" style="height: 12px;">
+            <div class="progress-bar bg-warning text-dark fw-bold" role="progressbar" [style.width]="(status!.xpAtual / status!.xpMaximo * 100) + '%'" style="font-size: 0.7rem;">
+              XP: {{status?.xpAtual}}/{{status?.xpMaximo}}
+            </div>
+          </div>
+          
+          <div class="progress mb-2" style="height: 20px;">
+            <div class="progress-bar bg-danger" role="progressbar" [style.width]="(status!.hpAtual / status!.hpMax * 100) + '%'">
+              HP: {{status?.hpAtual}}/{{status?.hpMax}}
+            </div>
+          </div>
+          
+          <div class="progress mb-2" style="height: 20px;">
+            <div class="progress-bar bg-info" role="progressbar" [style.width]="(status!.staminaAtual / status!.staminaMax * 100) + '%'">
+              Stamina: {{status?.staminaAtual}}/{{status?.staminaMax}}
+            </div>
+          </div>
+
+          <p class="mb-1 small">🪙 Dinheiro: <strong>{{status?.dinheiro}}</strong></p>
+        </div>
+      </div>
+
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-secondary text-white py-2">
+          <h5 class="mb-0">📦 Inventário</h5>
+        </div>
+        <div class="card-body py-2 p-1">
+          <ul class="list-group list-group-flush small">
+            <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+              Poção Cura (+50 HP)
+              <div>
+                <span class="badge bg-danger rounded-pill me-2">{{status?.pocoes}}</span>
+                <button class="btn btn-sm btn-outline-danger py-0 px-2" (click)="consumirItem('cura')" [disabled]="status!.pocoes <= 0">Usar</button>
+              </div>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+              Poção ST (+50)
+              <div>
+                <span class="badge bg-info rounded-pill me-2">{{status?.pocoesStamina}}</span>
+                <button class="btn btn-sm btn-outline-info py-0 px-2" (click)="consumirItem('stamina')" [disabled]="status!.pocoesStamina <= 0">Usar</button>
+              </div>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+              Pão (+20 All)
+              <div>
+                <span class="badge bg-warning rounded-pill me-2">{{status?.paes}}</span>
+                <button class="btn btn-sm btn-outline-warning py-0 px-2" (click)="consumirItem('pao')" [disabled]="status!.paes <= 0">Usar</button>
+              </div>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+              Lembas (100%)
+              <div>
+                <span class="badge bg-success rounded-pill me-2">{{status?.lembas}}</span>
+                <button class="btn btn-sm btn-outline-success py-0 px-2" (click)="consumirItem('lembas')" [disabled]="status!.lembas <= 0">Usar</button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA 2: Combate e Cidades -->
+    <div class="col-md-5 h-100 overflow-y-auto pb-3" *ngIf="status?.heroi && status?.estadoJogo === 'JOGANDO'">
+      
+      <!-- Cidades e Eventos Especiais -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-header text-white fw-bold d-flex align-items-center gap-2" [ngClass]="{
+          'bg-info': status!.local == 'Bree' || status!.local == 'Valfenda',
+          'bg-warning': status!.local == 'Rohan',
+          'bg-success': status!.local == 'Lothlórien'
+        }">
+          <span>{{ status!.local == 'Bree' ? '🏘️' : (status!.local == 'Rohan' ? '🐎' : '🍃') }}</span>
+          {{status!.local}}
+        </div>
+        <div class="card-body py-3">
+          
+          <div class="alert alert-primary py-2 px-3 small mb-3 text-center" *ngIf="status!.textoEventoEspecial" style="white-space: pre-wrap;">
+            <strong>{{status!.textoEventoEspecial}}</strong>
+          </div>
+          
+          <div *ngIf="status!.missaoAtiva" class="alert alert-info py-2 px-3 small mb-3">
+            <strong>Missão Ativa:</strong> {{status!.missaoAtiva}}<br>
+            Progresso: {{status!.missaoProgresso}} / {{status!.missaoObjetivo}}
+          </div>
+          
+          <div class="row gx-2" *ngIf="status!.local == 'Bree'">
+            <div class="col-6"><button class="btn btn-outline-danger btn-sm w-100" [disabled]="status!.inimigosRestantes > 0" (click)="lojaBree('cura')">Comprar Cura (20)</button></div>
+            <div class="col-6"><button class="btn btn-outline-info btn-sm w-100" [disabled]="status!.inimigosRestantes > 0" (click)="lojaBree('stamina')">Comprar ST (20)</button></div>
+          </div>
+          
+          <div class="row gx-2" *ngIf="status!.local == 'Valfenda' || status!.local == 'Lothlórien'">
+            <div class="col-12"><button class="btn btn-success btn-sm w-100 mb-2" [disabled]="status!.inimigosRestantes > 0" (click)="curarTotal()">✨ Curar Total pelas Artes Élficas</button></div>
+            <div class="col-12"><button class="btn btn-primary btn-sm w-100 mb-2" [disabled]="status!.inimigosRestantes > 0" (click)="interagirMissao()">📜 Pedir Missão aos Elfos</button></div>
+          </div>
+          
+          <button *ngIf="status!.local == 'Lothlórien'" class="btn btn-warning btn-sm w-100 mb-2" [disabled]="status!.inimigosRestantes > 0" (click)="pegarLembas()">🍞 Comprar Lembas (50)</button>
+
+          <div *ngIf="status!.local == 'Rohan'">
+            <button class="btn btn-dark btn-sm w-100" *ngIf="!status!.ensopadoEowynComido" [disabled]="status!.inimigosRestantes > 0" (click)="comerEowyn()">🍲 Provar Ensopado da Éowyn</button>
+            <p class="small text-muted mb-0" *ngIf="status!.ensopadoEowynComido">Você já provou o ensopado. Seu estômago dói ao lembrar.</p>
+          </div>
+
+          <div *ngIf="status!.grupo.includes('Sam')" class="mt-2 pt-2 border-top">
+            <button class="btn btn-secondary btn-sm w-100" [disabled]="status!.inimigosRestantes > 0" (click)="cozinharSam()">🍳 Sam: Fazer Ensopado (+50% HP/ST)</button>
+            <p class="small text-muted mt-1 mb-0" style="font-size: 0.7rem;">(Custa 1 Carne, 1 Batata, 1 Especiaria)</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Combate -->
+      <div class="card shadow-sm mb-3 border-danger">
+        <div class="card-header bg-danger text-white py-2">
+          <h5 class="mb-0">🗡️ Combate em {{status?.local}}</h5>
+        </div>
+        <div class="card-body text-center py-3">
+          <div *ngIf="status!.inimigosRestantes <= 0">
+            <h6 class="text-muted mb-3">A área está segura. Você pode avançar pelo mapa ou explorar aqui.</h6>
+            <button class="btn btn-danger w-100 py-2 fs-5" (click)="explorar()">🔦 Explorar Local (Avançar Tempo)</button>
+          </div>
+
+          <div *ngIf="status!.inimigosRestantes > 0">
+            <h5 class="text-danger mb-1">⚠️ {{status?.inimigoAtualNome}}</h5>
+            <p class="small text-muted mb-2">Inimigos: {{status?.inimigosRestantes}}</p>
+            
+            <div class="progress mb-3" style="height: 15px;">
+              <div class="progress-bar bg-warning text-dark fw-bold" role="progressbar" style="width: 100%">
+                HP Inimigo: {{status?.inimigoAtualHp}}
+              </div>
+            </div>
+
+            <!-- Botões de Ataque Dinâmicos -->
+            <div class="row gx-2 mb-3">
+              <div *ngFor="let ataque of status?.ataquesDisponiveis; let i = index" [ngClass]="ataque.especial ? 'col-12 mb-2' : 'col-6 mb-2'">
+                <button class="btn w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+                        [ngClass]="ataque.especial ? 'btn-warning border border-danger fw-bold' : 'btn-outline-primary'"
+                        (click)="atacar(i)" 
+                        [disabled]="status!.staminaAtual < ataque.custoStamina">
+                  <span class="mb-1">{{ataque.especial ? '⭐' : '🗡️'}} {{ataque.nome}}</span>
+                  <small *ngIf="ataque.custoStamina > 0">Custo: {{ataque.custoStamina}} ST</small>
+                  <small *ngIf="ataque.custoStamina === 0" class="text-danger">Ataque Épico!</small>
+                </button>
+              </div>
+            </div>
+            
+            <hr>
+            
+            <button class="btn btn-secondary w-100 mt-1" *ngIf="status!.grupo.length > 0" (click)="ataqueAjudantes()" 
+                    [disabled]="status!.ataquesHeroiContador < 2 && status!.hpAtual >= status!.hpMax * 0.1">
+              🛡️ Comandar Ajudantes ({{status?.ataquesHeroiContador}}/2) <span *ngIf="status!.hpAtual < status!.hpMax * 0.1">(Modo Desespero!)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Viagem Linear -->
+      <div class="card shadow-sm border-primary">
+        <div class="card-header bg-primary text-white py-2 fw-bold">
+          🧭 Escolha seu destino
+        </div>
+        <div class="card-body py-3" *ngIf="status!.local !== 'Portão Negro'">
+          <div *ngIf="status!.inimigosRestantes > 0" class="alert alert-danger p-1 small mb-0 text-center">
+            Derrote os inimigos ou o Chefe da área para poder fugir e viajar!
+          </div>
+          <div class="d-flex flex-wrap gap-2 justify-content-center" *ngIf="status!.inimigosRestantes <= 0">
+            <button class="btn btn-outline-primary flex-grow-1" *ngFor="let destino of status?.destinosDisponiveis" (click)="viajar(destino)">
+              Ir para: {{destino}}
+            </button>
+          </div>
+        </div>
+        <div class="card-body py-3" *ngIf="status!.local === 'Portão Negro'">
+          <div class="alert alert-warning fw-bold text-center mb-0">
+            Você está em seu destino final. Ajude Frodo em sua missão no Monte da Perdição!
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLUNA 3: Log da Aventura -->
+    <div class="col-md-4 h-100 d-flex flex-column pb-3" *ngIf="status?.heroi && status?.estadoJogo === 'JOGANDO'">
+      <div class="card shadow-sm flex-grow-1 d-flex flex-column border-warning">
+        <div class="card-header bg-warning text-dark py-2">
+          <h5 class="mb-0">📜 Registro da Jornada</h5>
+        </div>
+        <div class="card-body overflow-y-auto p-2" style="background-color: #1e1e1e; color: #00ff41; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem;">
+          <div *ngIf="resultado" style="white-space: pre-wrap;">{{resultado}}</div>
+          <div class="text-muted" *ngIf="!resultado">As crônicas começarão a ser escritas...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

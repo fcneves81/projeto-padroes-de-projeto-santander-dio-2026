@@ -1,0 +1,28 @@
+# IDEs e Editores
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.class
+
+# Backend (Java / Spring Boot)
+backend/target/
+backend/*.jar
+backend/*.war
+backend/*.ear
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/logs/
+backend/*.log
+
+# Frontend (Node / Angular)
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/*.log
+frontend/.npm/
+frontend/coverage/
