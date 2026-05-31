@@ -7,7 +7,7 @@ import { StatusAventura } from '../models/status.model';
   providedIn: 'root'
 })
 export class AventuraService {
-  private apiUrl = isDevMode() ? 'http://localhost:8080/api/aventura' : 'https://www.qudtecnologia.com.br/api-terra-media';
+  private apiUrl = isDevMode() ? 'http://localhost:8080/api/aventura' : 'https://www.qudtecnologia.com.br/api/aventura';
 
   constructor(private http: HttpClient) {}
 
